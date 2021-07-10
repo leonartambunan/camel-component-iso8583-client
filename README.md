@@ -37,7 +37,7 @@ import org.apache.camel.builder.RouteBuilder;
 .....
 
 from("routexxx")
-  .to("iso8583server:7001")
+  .to("iso8583client:localhost:7001")
   .end();
 
 ```
