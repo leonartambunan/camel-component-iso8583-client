@@ -9,6 +9,7 @@ import com.solab.iso8583.IsoMessage;
 import com.solab.iso8583.MessageFactory;
 import com.solab.iso8583.parse.ConfigParser;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.internal.StringUtil;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultProducer;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +33,35 @@ public class CamelIsoClientProducer extends DefaultProducer implements IsoMessag
 
         String uri = endpoint.getEndpointUri();
 
-        String host = "localhost";
-        int port = 7001;
+        String hostport = uri.substring(16);
+
+        if (!hostport.contains(":")) {
+            logger.error("Specify the route as iso8583client:hostname:port");
+            System.exit(1);
+        }
+
+        String host = hostport.split(":")[0];
+        String portStr = hostport.split(":")[1];
+
+        if(StringUtil.isNullOrEmpty(host)) {
+            logger.info("Route uses interface {}",host);
+            host = "localhost";
+        }
+
+        int defaultPort = 7001;
+        int port;
+
+        if(StringUtil.isNullOrEmpty(portStr)) {
+            port = defaultPort;
+        } else {
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException e) {
+                port = defaultPort;
+            }
+        }
+
+        logger.info("Route uses port : {}",port);
 
 
         ClientConfiguration clientConfiguration = ClientConfiguration.newBuilder()
@@ -69,7 +97,7 @@ public class CamelIsoClientProducer extends DefaultProducer implements IsoMessag
 
             J8583MessageFactory messageFactory = new J8583MessageFactory<>(mf, ISO8583Version.V1987);// [1]
 
-            SocketAddress socketAddress = new InetSocketAddress("localhost", 7001);
+            SocketAddress socketAddress = new InetSocketAddress(host, port);
 
             client = new Iso8583Client<IsoMessage>(socketAddress, clientConfiguration, messageFactory);
 
