@@ -36,7 +36,7 @@ import org.apache.camel.builder.RouteBuilder;
 
 .....
 
-from("routexxx")
+from("routexxx")  //the Exchange body from routexxx must contains instance of com.solab.iso8583.IsoMessage object
   .to("iso8583client:localhost:7001")
   .end();
 
